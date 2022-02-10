@@ -6,6 +6,8 @@ public class Node {
 
     private Node rightNode;
 
+    private int height = 1;
+
     public Node(int value) {
         this.value = value;
     }
@@ -17,6 +19,7 @@ public class Node {
         setValue(rightNode.getValue());
         setRightNode(rightNode.getRightNode());
         setLeftNode(newNode);
+        updateHeight();
     }
 
     public void rightRotate() {
@@ -26,6 +29,13 @@ public class Node {
         setValue(leftNode.getValue());
         setRightNode(newNode);
         setLeftNode(leftNode.getLeftNode());
+        updateHeight();
+    }
+
+    public void updateHeight() {
+        int leftHeight = getLeftNode() == null ? 0 : getLeftNode().getHeight();
+        int rightHeight = getRightNode() == null ? 0 : getRightNode().getHeight();
+        setHeight(Math.max(leftHeight, rightHeight) + 1);
     }
 
     public void add(Node node) {
@@ -38,25 +48,33 @@ public class Node {
             } else {
                 leftNode.add(node);
             }
+            updateHeight();
         }
 
         if (node.getValue() > value) {
             if (rightNode == null) {
                 rightNode = node;
+                updateHeight();
             } else {
                 rightNode.add(node);
             }
+            updateHeight();
         }
 
+
+        //假如左子树的高度比右子树的高度大于1，即出现不平衡现象
         if (leftHeight() - rightHeight() > 1) {
+            //如果左子树不为空，且左子树的右子树高度大于左子树的左子树高度->LR情况，先进行左子树左旋操作，再进行右旋
             if (leftNode != null && leftNode.rightHeight() > leftNode.leftHeight()) {
                 leftNode.leftRotate();
             }
             rightRotate();
-            return;
+//            return;
         }
 
+        //假如右子树的高度比左子树的高度大于1，即出现不平衡现象
         if (rightHeight() - leftHeight() > 1) {
+            //如果右子树不为空，且右子树的左子树高度大于右子树的右子树高度->RL情况，先进行右子树的右旋，再进行左旋
             if (rightNode != null && rightNode.leftHeight() > rightNode.rightHeight()) {
                 rightNode.rightRotate();
             }
@@ -68,7 +86,7 @@ public class Node {
         if (leftNode == null) {
             return 0;
         } else {
-            return leftNode.height();
+            return leftNode.getHeight();
         }
     }
 
@@ -76,7 +94,7 @@ public class Node {
         if (rightNode == null) {
             return 0;
         } else {
-            return rightNode.height();
+            return rightNode.getHeight();
         }
     }
 
@@ -155,6 +173,15 @@ public class Node {
         this.rightNode = rightNode;
     }
 
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    //前序遍历，先进行根节点，再遍历左节点，然后遍历右节点
     public void DLR() {
         System.out.println("node value is " + value);
         if (leftNode != null) {

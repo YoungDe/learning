@@ -50,6 +50,7 @@ public class Tree {
 
             //查找目标节点的父节点
             Node targetParent = searchParent(value);
+            //仅有一个节点的情况
             if (target.getRightNode() == null && target.getRightNode() == null) {
                 if (targetParent.getLeftNode() != null && targetParent.getLeftNode().getValue() == value) {
                     targetParent.setLeftNode(null);
@@ -57,6 +58,7 @@ public class Tree {
                 if (targetParent.getRightNode() != null && targetParent.getRightNode().getValue() == value) {
                     targetParent.setRightNode(null);
                 }
+
             } else if (target.getLeftNode() != null && target.getRightNode() != null) {
                 int minValue = deleteMin(target.getRightNode());
                 target.setValue(minValue);
@@ -94,13 +96,13 @@ public class Tree {
     }
 
     public static void main(String[] args) {
-        int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
+        int[] arr = {10, 5, 6};
         Tree tree = new Tree();
         for (int i : arr) {
             tree.add(new Node(i));
         }
         tree.DLR();
-        tree.delete(6);
-        tree.DLR();
+//        tree.delete(6);
+//        tree.DLR();
     }
 }
