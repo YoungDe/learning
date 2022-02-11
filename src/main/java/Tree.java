@@ -36,22 +36,18 @@ public class Tree {
 
     public void delete(int value) {
         if (root == null) {
-            return;
+            System.out.println("树为空，无法进行删除操作");
         } else {
+//
             Node target = search(value);
             if (target == null) {
                 return;
             }
 
-            //如果只有一个根节点，直接删除这个节点
-            if (root.getLeftNode() == null && root.getRightNode() == null) {
-                root = null;
-            }
-
             //查找目标节点的父节点
             Node targetParent = searchParent(value);
-            //仅有一个节点的情况
-            if (target.getRightNode() == null && target.getRightNode() == null) {
+            //待删除节点，没有左子树和右子树的情况
+            if (target.getLeftNode() == null && target.getRightNode() == null) {
                 if (targetParent.getLeftNode() != null && targetParent.getLeftNode().getValue() == value) {
                     targetParent.setLeftNode(null);
                 }
@@ -82,6 +78,7 @@ public class Tree {
                     }
                 }
             }
+            targetParent.rebalanced();
         }
     }
 
@@ -96,13 +93,11 @@ public class Tree {
     }
 
     public static void main(String[] args) {
-        int[] arr = {10, 5, 6};
+        int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
         Tree tree = new Tree();
         for (int i : arr) {
             tree.add(new Node(i));
         }
-        tree.DLR();
-//        tree.delete(6);
-//        tree.DLR();
+        tree.delete(15);
     }
 }

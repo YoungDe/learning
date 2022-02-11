@@ -60,8 +60,10 @@ public class Node {
             }
             updateHeight();
         }
+        rebalanced();
+    }
 
-
+    public void rebalanced() {
         //假如左子树的高度比右子树的高度大于1，即出现不平衡现象
         if (leftHeight() - rightHeight() > 1) {
             //如果左子树不为空，且左子树的右子树高度大于左子树的左子树高度->LR情况，先进行左子树左旋操作，再进行右旋
@@ -86,7 +88,7 @@ public class Node {
         if (leftNode == null) {
             return 0;
         } else {
-            return leftNode.getHeight();
+            return leftNode.height();
         }
     }
 
@@ -94,7 +96,7 @@ public class Node {
         if (rightNode == null) {
             return 0;
         } else {
-            return rightNode.getHeight();
+            return rightNode.height();
         }
     }
 
