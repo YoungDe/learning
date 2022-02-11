@@ -78,7 +78,9 @@ public class Tree {
                     }
                 }
             }
-            targetParent.rebalanced();
+            if (targetParent != null) {
+                targetParent.rebalanced();
+            }
         }
     }
 
