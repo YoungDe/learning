@@ -1,4 +1,4 @@
-public class Tree {
+public class AVLTree {
 
     private Node root;
 
@@ -96,7 +96,7 @@ public class Tree {
 
     public static void main(String[] args) {
         int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
-        Tree tree = new Tree();
+        AVLTree tree = new AVLTree();
         for (int i : arr) {
             tree.add(new Node(i));
         }
