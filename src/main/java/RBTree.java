@@ -48,23 +48,114 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     public void insert(K key, V value) {
-        RBNode rootNode = root;
-        if (rootNode == null) {
+        RBNode t = root;
+        if (t == null) {
             root = new RBNode(key, value == null ? key : value, null);
             return;
         }
+
         //1、插入节点(可以看成是在普通二叉树中插入)
         //   a.找到插入位置
         //   b.将节点插入父节点相应的位置
-        //2、插入节点以后进行调整
-
         int cmp;
         RBNode parent;
         do {
-            parent = rootNode;
-            key.compareTo((K) rootNode.getKey());
-        } while (rootNode != null);
+            parent = t;
+            cmp = key.compareTo((K) t.getKey());
+            if (cmp < 0) {
+                //加入的节点需要放在左子树
+                t = t.left;
+            } else if (cmp > 0) {
+                //加入的节点需要放在右子树
+                t = t.right;
+            } else {
+                //加入的节点已经存在，需要进行覆盖操作
+                t.setValue(value == null ? key : value);
+            }
 
+        } while (t != null);
+        //2、插入节点以后进行调整
+        //红黑树具备一下性质：
+        // 1、节点是红色或黑色；
+        // 2、根节点是黑色；
+        // 3、不能有连续的两个红色节点。
+        // 4、从任一节点到其每个叶子的简单路径都包含相同数量的黑色节点。
+
+        //变色操作：红黑树属于二叉搜索树，插入操作也与二叉搜索树一致，只不过红黑树在插入之后，多了平衡动作（旋转和变色）
+        //新插入的节点均为红色，因为红色不会影响路径上黑色节点数量
+
+        RBNode node = new RBNode(key, value == null ? key : value, parent);
+        if (cmp < 0) {
+            parent.setLeft(node);
+        } else if (cmp > 0) {
+            parent.setRight(node);
+        }
+        rebalanced(node);
+
+    }
+
+    private void rebalanced(RBNode node) {
+        node.color = RED;
+
+        while (node != null && node != root && node.parent.color == RED) {
+            RBNode grandPa = parentOf(parentOf(node));
+            RBNode parent = parentOf(node);
+            if (parent == leftOf(grandPa)) {
+                RBNode uncle = rightOf(node);
+                if (colorOf(uncle) == RED) {//父红，叔红
+                    setColor(parent, BLACK);
+                    setColor(uncle, BLACK);
+                    setColor(grandPa, RED);
+                    node = grandPa;
+                } else {//叔为黑
+                    if (node == rightOf(parent)) {
+                        node = parent;
+                        leftRotate(node);
+                    }
+                    setColor(parent, BLACK);
+                    setColor(grandPa, RED);
+                    rightRotate(grandPa);
+                }
+            } else {
+                RBNode uncle = leftOf(node);
+                if (colorOf(uncle) == RED) {
+                    setColor(parent, BLACK);
+                    setColor(uncle, BLACK);
+                    setColor(grandPa, RED);
+                    node = grandPa;
+                } else {
+                    if (node == leftOf(parent)) {
+                        node = parent;
+                        rightRotate(node);
+                    }
+                    setColor(parent, BLACK);
+                    setColor(grandPa, RED);
+                    rightRotate(grandPa);
+                }
+            }
+        }
+    }
+
+    private void setColor(RBNode node, boolean color) {
+        if (node != null) {
+            node.setColor(color);
+        }
+    }
+
+    private RBNode parentOf(RBNode node) {
+        return node == null ? null : node.parent;
+    }
+
+    private RBNode leftOf(RBNode node) {
+        return node == null ? null : node.left;
+    }
+
+    private RBNode rightOf(RBNode node) {
+        return node == null ? null : node.right;
+    }
+
+    private boolean colorOf(RBNode node) {
+        return node == null ? BLACK : node.color;
     }
 
 
@@ -109,7 +200,7 @@ public class RBTree<K extends Comparable<K>, V> {
             this.right = right;
         }
 
-        public boolean isColor() {
+        public boolean getColor() {
             return color;
         }
 
