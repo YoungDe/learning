@@ -6,7 +6,7 @@ public class Node {
 
     private Node rightNode;
 
-    private int height = 1;
+    private int height;
 
     public Node(int value) {
         this.value = value;
@@ -19,7 +19,6 @@ public class Node {
         setValue(rightNode.getValue());
         setRightNode(rightNode.getRightNode());
         setLeftNode(newNode);
-        updateHeight();
     }
 
     public void rightRotate() {
@@ -29,7 +28,6 @@ public class Node {
         setValue(leftNode.getValue());
         setRightNode(newNode);
         setLeftNode(leftNode.getLeftNode());
-        updateHeight();
     }
 
     public void updateHeight() {
@@ -48,19 +46,17 @@ public class Node {
             } else {
                 leftNode.add(node);
             }
-            updateHeight();
         }
 
         if (node.getValue() > value) {
             if (rightNode == null) {
                 rightNode = node;
-                updateHeight();
             } else {
                 rightNode.add(node);
             }
-            updateHeight();
         }
         rebalanced();
+        updateHeight();
     }
 
     public void rebalanced() {
@@ -71,7 +67,6 @@ public class Node {
                 leftNode.leftRotate();
             }
             rightRotate();
-//            return;
         }
 
         //假如右子树的高度比左子树的高度大于1，即出现不平衡现象
@@ -88,7 +83,7 @@ public class Node {
         if (leftNode == null) {
             return 0;
         } else {
-            return leftNode.height();
+            return leftNode.getHeight() + 1;
         }
     }
 
@@ -96,14 +91,9 @@ public class Node {
         if (rightNode == null) {
             return 0;
         } else {
-            return rightNode.height();
+            return rightNode.getHeight() + 1;
         }
     }
-
-    public int height() {
-        return Math.max(leftNode == null ? 0 : leftNode.height(), rightNode == null ? 0 : rightNode.height()) + 1;
-    }
-
 
     /**
      * 二叉树删除节点的时候有三种情况

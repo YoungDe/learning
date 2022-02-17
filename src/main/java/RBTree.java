@@ -1,5 +1,3 @@
-import java.util.TreeMap;
-
 public class RBTree<K extends Comparable<K>, V> {
 
     private static final boolean RED = false;
@@ -150,7 +148,43 @@ public class RBTree<K extends Comparable<K>, V> {
 
     }
 
-    private void fixAfterDeletion(RBNode<K, V> replacement) {
+    private void fixAfterDeletion(RBNode<K, V> node) {
+        while (node != root && node.color == BLACK) {
+            if (node == leftOf(parentOf(node))) {
+                //兄弟结点
+                RBNode<K, V> sib = rightOf(parentOf(node));
+                //如果兄弟结点为红色(左右子结点必为黑色)，那么就转换成兄弟节点为黑色的情况也就是下面的情况；做法是将兄弟节点和父结点交换颜色，然后在父节点左旋；
+                if (colorOf(sib) == RED) {
+                    setColor(sib, BLACK);
+                    setColor(parentOf(node), RED);
+                    leftRotate(parentOf(node));
+                    sib = rightOf(node);//重新获取兄弟结点
+                }
+
+                //如果兄弟结点是黑色，且左子节点是黑色，右子节点也是黑色，那么处理方式直接把兄弟结点变成红色即可（黑高减1），然后再到父亲结点看是否平衡。
+                if (colorOf(leftOf(sib)) == BLACK && colorOf(rightOf(sib)) == BLACK) {
+                    setColor(sib, RED);
+                    node = parentOf(node);
+                } else {
+                    //如果兄弟结点是黑色，且近侄子结点是红色，将兄弟结点(黑色)和近侄结点(红色)互换颜色，并做右旋操作。
+                    if (colorOf(rightOf(sib)) == BLACK) {
+                        setColor(leftOf(sib), BLACK);
+                        setColor(sib, RED);
+                        rightRotate(sib);
+                        sib = rightOf(parentOf(node));
+                    }
+                    //如果兄弟结点是黑色，且远侄结点是红色，那就把兄弟结点(黑色)和父亲结点(未知)互换颜色，并且进行左旋操作(父结点变黑并且到左边，此时，左边黑高加1,右边黑高减1)。
+                    // 并且将远侄结点变黑(右边黑高加1，维持红黑树平衡)，结束平衡。
+                    setColor(sib, colorOf(parentOf(node)));
+                    setColor(parentOf(node), BLACK);
+                    setColor(rightOf(sib), BLACK);
+                    leftRotate(parentOf(node));
+                    node = root;
+                }
+            } else {
+                //删除结点父结点的右子树
+            }
+        }
 
     }
 
@@ -222,8 +256,8 @@ public class RBTree<K extends Comparable<K>, V> {
             RBNode<K, V> parent = parentOf(node);
             if (parent == leftOf(grandPa)) {
                 RBNode<K, V> uncle = rightOf(parentOf(parentOf(node)));
-                if (colorOf(uncle) == RED) {//父红，叔红
-                    setColor(uncle, BLACK);
+                if (colorOf(uncle) == RED) {//父红，叔红,处理方式是把父亲和叔叔结点涂黑，
+                    setColor(parentOf(node), BLACK);
                     setColor(rightOf(parentOf(parentOf(node))), BLACK);
                     setColor(parentOf(parentOf(node)), RED);
                     node = grandPa;
@@ -232,6 +266,10 @@ public class RBTree<K extends Comparable<K>, V> {
                         node = parentOf(node);
                         leftRotate(node);
                     }
+                    // 从祖父结点看，左边连着两个红色，右边没有红色，想办法把左边的一个红色结点均到右边。做法如下：
+                    // 新增结点为左子树，且叔结点为黑色；
+                    // 这时把父系结点改成黑色（经过父节点的黑高加了1），祖父结点改成红色然后（左右黑高都减一），
+                    // 在祖父结点右旋，这样父节点替换了父结点，同时，经过叔结点的黑高不变。
                     setColor(parentOf(node), BLACK);
                     setColor(parentOf(parentOf(node)), RED);
                     rightRotate(parentOf(parentOf(node)));

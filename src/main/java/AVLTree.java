@@ -62,9 +62,13 @@ public class AVLTree {
                 //目标节点有左子树
                 if (target.getLeftNode() != null) {
                     if (targetParent != null) {
-                        targetParent.setLeftNode(target.getLeftNode());
+                        if (target.getLeftNode().getValue() == value) {
+                            targetParent.setLeftNode(target.getLeftNode());
+                        } else {
+                            targetParent.setRightNode(target.getRightNode());
+                        }
                     } else {
-                        targetParent.setRightNode(target.getLeftNode());
+                        root = target.getLeftNode();
                     }
                 } else {
                     if (targetParent != null) {
@@ -95,11 +99,11 @@ public class AVLTree {
     }
 
     public static void main(String[] args) {
-        int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
+        int[] arr = {10, 5};
         AVLTree tree = new AVLTree();
         for (int i : arr) {
             tree.add(new Node(i));
         }
-        tree.delete(15);
+        tree.delete(10);
     }
 }
