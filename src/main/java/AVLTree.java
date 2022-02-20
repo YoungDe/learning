@@ -1,105 +1,202 @@
-public class AVLTree {
+public class AVLTree<K extends Comparable<K>, V> {
 
-    private Node root;
+    static class Node<K extends Comparable<K>, V> {
 
-    public void add(Node node) {
-        if (root == null) {
-            this.root = node;
-        } else {
-            root.add(node);
+        private Node<K, V> parent;
+
+        private K key;
+
+        private V value;
+
+        private Node<K, V> leftNode;
+
+        private Node<K, V> rightNode;
+
+        public Node() {
+        }
+
+        public Node(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public Node<K, V> getParent() {
+            return parent;
+        }
+
+        public void setParent(Node<K, V> parent) {
+            this.parent = parent;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public void setKey(K key) {
+            this.key = key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public void setValue(V value) {
+            this.value = value;
+        }
+
+        public Node<K, V> getLeftNode() {
+            return leftNode;
+        }
+
+        public void setLeftNode(Node<K, V> leftNode) {
+            this.leftNode = leftNode;
+        }
+
+        public Node<K, V> getRightNode() {
+            return rightNode;
+        }
+
+        public void setRightNode(Node<K, V> rightNode) {
+            this.rightNode = rightNode;
         }
     }
 
-    public void DLR() {
-        if (root != null) {
-            root.DLR();
-        } else {
-            System.out.println("无法遍历空树");
-        }
+    private Node<K, V> root;
+
+    public Node<K, V> parentOf(Node<K, V> node) {
+        return node == null ? null : node.getParent();
     }
 
-    public Node search(int value) {
-        if (root == null) {
-            return null;
-        } else {
-            return root.search(value);
-        }
+    public Node<K, V> leftOf(Node<K, V> node) {
+        return node == null ? null : node.getLeftNode();
     }
 
-    public Node searchParent(int value) {
-        if (root == null) {
-            return null;
-        } else {
-            return root.searchParent(value);
-        }
+    public Node<K, V> rightOf(Node<K, V> node) {
+        return node == null ? null : node.getRightNode();
     }
 
-    public void delete(int value) {
-        if (root == null) {
-            System.out.println("树为空，无法进行删除操作");
-        } else {
-//
-            Node target = search(value);
-            if (target == null) {
-                return;
-            }
-
-            //查找目标节点的父节点
-            Node targetParent = searchParent(value);
-            //待删除节点，没有左子树和右子树的情况
-            if (target.getLeftNode() == null && target.getRightNode() == null) {
-                if (targetParent.getLeftNode() != null && targetParent.getLeftNode().getValue() == value) {
-                    targetParent.setLeftNode(null);
-                }
-                if (targetParent.getRightNode() != null && targetParent.getRightNode().getValue() == value) {
-                    targetParent.setRightNode(null);
-                }
-
-            } else if (target.getLeftNode() != null && target.getRightNode() != null) {
-                int minValue = deleteMin(target.getRightNode());
-                target.setValue(minValue);
+    public void add(Node<K, V> node) {
+        int cmp;
+        Node<K, V> t = root;
+        if (t == null) {
+            root = node;
+            return;
+        }
+        Node<K, V> parent;
+        do {
+            parent = t;
+            cmp = node.key.compareTo(t.key);
+            if (cmp < 0) {
+                t = t.leftNode;
+            } else if (cmp > 0) {
+                t = t.rightNode;
             } else {
-                //目标节点有左子树
-                if (target.getLeftNode() != null) {
-                    if (targetParent != null) {
-                        targetParent.setLeftNode(target.getLeftNode());
-                    } else {
-                        targetParent.setRightNode(target.getLeftNode());
-                    }
-                } else {
-                    if (targetParent != null) {
-                        if (targetParent.getLeftNode().getValue() == value) {
-                            targetParent.setLeftNode(target.getRightNode());
-                        } else {
-                            targetParent.setRightNode(target.getRightNode());
-                        }
-                    } else {
-                        root = target.getRightNode();
-                    }
-                }
+                t.setValue(node.value);
             }
-            if (targetParent != null) {
-                targetParent.rebalanced();
+        } while (t != null);
+
+        node.setParent(parent);
+        if (cmp < 0) {
+            parent.setLeftNode(node);
+        } else {
+            parent.setRightNode(node);
+        }
+
+        while (node != null) {
+            node = parentOf(node);
+            rebalanced(node);
+        }
+
+    }
+
+    private void rebalanced(Node<K, V> node) {
+        if (node != null) {
+            if (leftHeight(node) - rightHeight(node) > 1) {
+                if (rightHeight(node.leftNode) > leftHeight(node.leftNode))
+                    leftRotate(node.leftNode);
+                rightRotate(node);
+            }
+            if (rightHeight(node) - leftHeight(node) > 1) {
+                if (leftHeight(node.rightNode) > rightHeight(node.rightNode))
+                    rightRotate(node.rightNode);
+                leftRotate(node);
             }
         }
     }
 
-    public int deleteMin(Node node) {
-        Node targetNode = node;
-        while (targetNode.getLeftNode() != null) {
-            targetNode = targetNode.getLeftNode();
-            //targetNode 指向最小值
+    public int leftHeight(Node<K, V> node) {
+        if (node.leftNode == null) {
+            return 0;
+        } else {
+            return height(node.leftNode);
         }
-        delete(targetNode.getValue());
-        return targetNode.getValue();
     }
+
+    private int height(Node<K, V> node) {
+        return Math.max(node.leftNode == null ? 0 : height(node.leftNode), node.rightNode == null ? 0 : height(node.rightNode)) + 1;
+    }
+
+    public int rightHeight(Node<K, V> node) {
+        if (node.rightNode == null) {
+            return 0;
+        } else {
+            return height(node.rightNode);
+        }
+    }
+
+    public void leftRotate(Node<K, V> node) {
+        if (node != null) {
+
+            Node<K, V> rightNode = node.getRightNode();
+            node.setRightNode(rightNode.getLeftNode());
+
+            if (rightNode.leftNode != null) {
+                rightNode.leftNode.parent = node;
+            }
+            rightNode.parent = node.parent;
+            if (node.getParent() == null) {
+                root = rightNode;
+            } else if (leftOf(parentOf(node)) == node) {
+                node.getParent().setLeftNode(rightNode);
+            } else {
+                node.getParent().setRightNode(rightNode);
+            }
+            rightNode.setLeftNode(node);
+            node.parent = rightNode;
+        }
+    }
+
+    public void rightRotate(Node<K, V> node) {
+        if (node != null) {
+
+            Node<K, V> leftNode = node.getLeftNode();
+            node.setLeftNode(leftNode.getRightNode());
+
+            if (leftNode.getRightNode() != null) {
+                leftNode.rightNode.parent = node;
+            }
+            leftNode.parent = node.getParent();
+            if (node.getParent() == null) {
+                root = leftNode;
+            } else if (leftOf(parentOf(node)) == node) {
+                node.getParent().setLeftNode(leftNode);
+            } else {
+                node.getParent().setRightNode(leftNode);
+            }
+
+            leftNode.setRightNode(node);
+            node.parent = leftNode;
+
+        }
+    }
+
 
     public static void main(String[] args) {
         int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
-        AVLTree tree = new AVLTree();
+        AVLTree<Integer, String> tree = new AVLTree<>();
         for (int i : arr) {
-            tree.add(new Node(i));
+            tree.add(new Node<>(i, String.valueOf(i)));
         }
-        tree.delete(15);
+
     }
 }

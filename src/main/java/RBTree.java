@@ -1,234 +1,285 @@
-import java.util.TreeMap;
-
 public class RBTree<K extends Comparable<K>, V> {
 
-    private static final boolean RED = false;
-    private static final boolean BLACK = true;
+    private final static boolean BLACK = true;
 
-    private RBNode<K, V> root;
+    private final static boolean RED = false;
 
-    private void leftRotate(RBNode<K, V> node) {
+    private Node<K, V> root;
+
+    static class Node<K, V> {
+
+        private Node<K, V> parent;
+
+        private Node<K, V> left;
+
+        private Node<K, V> right;
+
+        private K key;
+
+        private V value;
+
+        private boolean color = BLACK;
+
+        public Node(K key, V value, Node<K, V> parent) {
+            this.key = key;
+            this.value = value;
+            this.parent = parent;
+        }
+
+    }
+
+    public Node<K, V> leftOf(Node<K, V> node) {
+        return node == null ? null : node.left;
+    }
+
+    public Node<K, V> rightOf(Node<K, V> node) {
+        return node == null ? null : node.right;
+    }
+
+    public boolean colorOf(Node<K, V> node) {
+        return node == null ? BLACK : node.color;
+    }
+
+    public void setColor(Node<K, V> node, boolean color) {
         if (node != null) {
-            RBNode<K, V> rightNode = node.right;
-            node.right = rightNode.left;
-            if (rightNode.left != null) {
-                rightNode.left.parent = node;
-            }
-            rightNode.parent = node.parent;
-            if (node.parent == null) {
-                root = rightNode;
-            } else if (node.parent.left == node) {
-                node.parent.left = rightNode;
-            } else {
-                node.parent.right = rightNode;
-            }
-
-            rightNode.left = node;
-            node.parent = rightNode;
+            node.color = color;
         }
     }
 
-    private void rightRotate(RBNode<K, V> node) {
+    public Node<K, V> parentOf(Node<K, V> node) {
+        return node == null ? null : node.parent;
+    }
+
+    private void leftRotate(Node<K, V> node) {
         if (node != null) {
-            RBNode<K, V> leftNode = node.left;
-            node.left = leftNode.right;
-            if (leftNode.right != null) {
-                leftNode.right.parent = node;
-            }
-            leftNode.parent = node.parent;
-            if (node.parent == null) {
-                root = leftNode;
-            } else if (node.parent.left == node) {
-                node.parent.left = leftNode;
-            } else {
-                node.parent.right = leftNode;
+            Node<K, V> r = node.right;
+            node.right = r.left;
+            if (r.left != null) {
+                r.left.parent = node;
             }
 
-            leftNode.right = node;
-            node.parent = leftNode;
+            r.parent = node.parent;
+            if (node.parent == null) {
+                root = r;
+            } else if (leftOf(parentOf(node)) == node) {
+                node.parent.left = r;
+            } else {
+                node.parent.right = r;
+            }
+            r.left = node;
+            node.parent = r;
         }
+    }
+
+    private void rightRotate(Node<K, V> node) {
+        if (node != null) {
+            Node<K, V> l = node.left;
+            node.left = l.right;
+            if (l.right != null) {
+                l.right.parent = node;
+            }
+
+            l.parent = node.parent;
+            if (node.parent == null) {
+                root = l;
+            } else if (leftOf(parentOf(node)) == node) {
+                node.parent.left = l;
+            } else {
+                node.parent.right = l;
+            }
+            l.right = node;
+            node.parent = l;
+        }
+    }
+
+    public Node<K, V> getNode(K key) {
+        if (key != null) {
+            Node<K, V> p = root;
+            while (p != null) {
+                int cmp = key.compareTo(p.key);
+                if (cmp < 0) {
+                    p = p.left;
+                } else if (cmp > 0) {
+                    p = p.right;
+                } else {
+                    return p;
+                }
+            }
+            return null;
+        }
+        return null;
+    }
+
+    public Node<K, V> successor(Node<K, V> node) {
+        if (node != null) {
+            if (node.right != null) {
+                Node<K, V> p = node.right;
+                while (p != null) {
+                    p = p.left;
+                }
+                return p;
+            } else {
+                Node<K, V> p = node.parent;
+                Node<K, V> ch = node;
+                while (p != null && ch == p.right) {
+                    ch = p;
+                    p = p.parent;
+                }
+            }
+        }
+        return null;
     }
 
     public void insert(K key, V value) {
-        RBNode<K, V> t = root;
-        if (t == null) {
-            root = new RBNode<>(key, value, null);
+        if (root == null) {
+            root = new Node<K, V>(key, value, null);
             return;
         }
 
-        //1、插入节点(可以看成是在普通二叉树中插入)
-        //   a.找到插入位置
-        //   b.将节点插入父节点相应的位置
+        Node<K, V> p = root;
+        Node<K, V> parent;
         int cmp;
-        RBNode<K, V> parent;
         do {
-            parent = t;
-            cmp = key.compareTo((K) t.getKey());
+            parent = p;
+            cmp = key.compareTo(p.key);
             if (cmp < 0) {
-                //加入的节点需要放在左子树
-                t = t.left;
+                p = p.left;
             } else if (cmp > 0) {
-                //加入的节点需要放在右子树
-                t = t.right;
+                p = p.right;
             } else {
-                //加入的节点已经存在，需要进行覆盖操作
-                t.setValue(value);
+                p.value = value;
             }
+        } while (p != null);
 
-        } while (t != null);
-        //2、插入节点以后进行调整
-        //红黑树具备一下性质：
-        // 1、节点是红色或黑色；
-        // 2、根节点是黑色；
-        // 3、不能有连续的两个红色节点。
-        // 4、从任一节点到其每个叶子的简单路径都包含相同数量的黑色节点。
-
-        //变色操作：红黑树属于二叉搜索树，插入操作也与二叉搜索树一致，只不过红黑树在插入之后，多了平衡动作（旋转和变色）
-        //新插入的节点均为红色，因为红色不会影响路径上黑色节点数量
-
-        RBNode<K, V> node = new RBNode<>(key, value, parent);
+        Node<K, V> node = new Node<K, V>(key, value, parent);
         if (cmp < 0) {
-            parent.setLeft(node);
-        } else {
-            parent.setRight(node);
+            parent.left = node;
+        } else if (cmp > 0) {
+            parent.right = node;
         }
-        rebalanced(node);
+        fixAfterInsert(node);
 
     }
 
-    public V remove(K k) {
-        RBNode<K, V> t = getNode(k);
-        if (t == null) {
+    public V remove(K key) {
+        Node<K, V> node = getNode(key);
+        if (node == null) {
             return null;
         }
-        V oldValue = t.getValue();
-        deleteNode(t);
+        V oldValue = node.value;
+        delete(node);
         return oldValue;
-
     }
 
-    private void deleteNode(RBNode<K, V> t) {
-        if (t.left != null && t.right != null) {
-            //用后继节点交换现有节点
-            RBNode<K, V> p = successor(t);
-            t.key = p.key;
-            t.value = p.value;
-            t = p;
+    private void delete(Node<K, V> node) {
+        if (node.left != null && node.right != null) {
+            Node<K, V> s = successor(node);
+            node.key = s.key;
+            node.value = s.value;
+            node = s;
         }
-
-        RBNode<K, V> replacement = (t.left != null ? t.left : t.right);
+        Node<K, V> replacement = node.left != null ? node.left : node.right;
         if (replacement != null) {
-            //删除节点有一个子节点时的情况；
-            replacement.parent = t.parent;
-            if (t.parent == null) {
+            replacement.parent = node.parent;
+            if (node.parent == null) {
                 root = replacement;
-            } else if (t == leftOf(parentOf(t))) {
-                t.parent.left = replacement;
+            } else if (leftOf(parentOf(node)) == node) {
+                node.parent.left = replacement;
             } else {
-                t.parent.right = replacement;
+                node.parent.right = replacement;
             }
-
-            t.left = t.right = t.parent = null;
-            if (t.color == BLACK) {
+            node.left = node.right = node.parent = null;
+            if (colorOf(node) == BLACK) {
                 fixAfterDeletion(replacement);
             }
-        } else if (t.parent == null) {
+
+        } else if (node.parent == null) {
+            // 插入了根节点，然后就删除根节点
             root = null;
         } else {
-            if (colorOf(t) == BLACK) {
-                fixAfterDeletion(t);
+            if (colorOf(node) == BLACK) {
+                fixAfterDeletion(node);
             }
-
-            if (t.parent != null) {
-                if (t == leftOf(parentOf(t))) {
-                    t.parent.left = null;
-                } else if (t == rightOf(parentOf(t))) {
-                    t.parent.right = null;
+            if (node.parent != null) {
+                if (leftOf(parentOf(node)) == node) {
+                    node.parent.left = null;
+                } else {
+                    node.parent.right = null;
                 }
             }
         }
 
     }
 
-    private void fixAfterDeletion(RBNode<K, V> replacement) {
-
-    }
-
-    //获取后继节点
-    private RBNode<K, V> successor(RBNode<K, V> t) {
-        if (t == null) {
-            return null;
-        } else if (t.right != null) {
-            RBNode<K, V> p = t.right;
-            while (p.left != null) {
-                p = p.left;
-            }
-            return p;
-        } else {
-            RBNode<K, V> p = t.parent;
-            RBNode<K, V> ch = t;
-            while (p != null && ch == p.left) {
-                ch = p;
-                p = p.parent;
-            }
-            return p;
-        }
-    }
-
-    //获取前继节点
-    private RBNode<K, V> predecessor(RBNode<K, V> t) {
-        if (t == null) {
-            return null;
-        } else if (t.left != null) {
-            RBNode<K, V> p = t.left;
-            while (p.right != null) {
-                p = p.right;
-            }
-            return p;
-        } else {
-            RBNode<K, V> p = t.parent;
-            RBNode<K, V> ch = t;
-            while (p != null && ch == p.right) {
-                ch = p;
-                p = p.parent;
-            }
-            return p;
-        }
-    }
-
-    public RBNode<K, V> getNode(K k) {
-        if (k == null) {
-            return null;
-        }
-        RBNode<K, V> t = root;
-        while (t != null) {
-            int cmp = k.compareTo(t.getKey());
-            if (cmp < 0) {
-                t = t.left;
-            } else if (cmp > 0) {
-                t = t.right;
+    private void fixAfterDeletion(Node<K, V> node) {
+        while (node != root && colorOf(node) == BLACK) {
+            if (leftOf(parentOf(node)) == node) {
+                // 删除结点是黑色，如果删除结点的兄弟结点是红色,必有两个黑色结点，转换成黑色的情况
+                Node<K, V> sibling = rightOf(parentOf(node));
+                if (colorOf(sibling) == RED) {
+                    setColor(sibling, BLACK);
+                    setColor(parentOf(node), RED);
+                    leftRotate(parentOf(node));
+                    sibling = rightOf(parentOf(node));
+                }
+                if (colorOf(leftOf(sibling)) == BLACK && colorOf(rightOf(sibling)) == BLACK) {
+                    setColor(sibling, RED);
+                    node = parentOf(node);
+                } else {
+                    if (colorOf(leftOf(sibling)) == RED) {
+                        setColor(leftOf(sibling), BLACK);
+                        rightRotate(sibling);
+                        sibling = rightOf(parentOf(node));
+                    }
+                    setColor(sibling, colorOf(parentOf(node)));
+                    setColor(parentOf(node), BLACK);
+                    leftRotate(parentOf(node));
+                    break;
+                }
             } else {
-                return t;
+                // 删除结点是黑色，如果删除结点的兄弟结点是红色,必有两个黑色结点，转换成黑色的情况
+                Node<K, V> sibling = leftOf(parentOf(node));
+                if (colorOf(sibling) == RED) {
+                    setColor(sibling, BLACK);
+                    setColor(parentOf(node), RED);
+                    rightRotate(parentOf(node));
+                    sibling = leftOf(parentOf(node));
+                }
+                if (colorOf(leftOf(sibling)) == BLACK && colorOf(rightOf(sibling)) == BLACK) {
+                    setColor(sibling, RED);
+                    node = parentOf(node);
+                } else {
+                    if (colorOf(rightOf(sibling)) == RED) {
+                        setColor(rightOf(sibling), BLACK);
+                        leftRotate(sibling);
+                        sibling = leftOf(parentOf(node));
+                    }
+                    setColor(sibling, colorOf(parentOf(node)));
+                    setColor(parentOf(node), BLACK);
+                    rightRotate(parentOf(node));
+                    break;
+                }
             }
         }
-        return null;
+        node.color = BLACK;
+
     }
 
-    private void rebalanced(RBNode<K, V> node) {
+    private void fixAfterInsert(Node<K, V> node) {
         node.color = RED;
-
-        while (node != null && node != root && node.parent.color == RED) {
-            RBNode<K, V> grandPa = parentOf(parentOf(node));
-            RBNode<K, V> parent = parentOf(node);
-            if (parent == leftOf(grandPa)) {
-                RBNode<K, V> uncle = rightOf(parentOf(parentOf(node)));
-                if (colorOf(uncle) == RED) {//父红，叔红
+        while (node != root && colorOf(node.parent) == RED) {
+            // 加入插入的是红色结点，且叔结点为
+            Node<K, V> parent = parentOf(node);
+            if (leftOf(parentOf(parent)) == parent) {
+                Node<K, V> uncle = rightOf(parentOf(parent));
+                if (colorOf(uncle) == RED) {
+                    setColor(parent, BLACK);
                     setColor(uncle, BLACK);
-                    setColor(rightOf(parentOf(parentOf(node))), BLACK);
-                    setColor(parentOf(parentOf(node)), RED);
-                    node = grandPa;
-                } else {//叔为黑
-                    if (node == rightOf(parent)) {
+                    setColor(parentOf(parent), RED);
+                    node = parentOf(parentOf(node));
+                } else {
+                    // 叔为黑,看差人结点是父结点的左子树还是右子树，不在同一边，先旋转到同一边再再父结点做旋转。同坐右旋。同右左旋。
+                    if (colorOf(rightOf(parent)) == RED) {
                         node = parentOf(node);
                         leftRotate(node);
                     }
@@ -237,14 +288,14 @@ public class RBTree<K extends Comparable<K>, V> {
                     rightRotate(parentOf(parentOf(node)));
                 }
             } else {
-                RBNode<K, V> uncle = leftOf(parentOf(parentOf(node)));
+                Node<K, V> uncle = leftOf(parentOf(parent));
                 if (colorOf(uncle) == RED) {
-                    setColor(parentOf(node), BLACK);
+                    setColor(parent, BLACK);
                     setColor(uncle, BLACK);
-                    setColor(parentOf(parentOf(node)), RED);
-                    node = grandPa;
+                    setColor(parentOf(parent), RED);
+                    node = parentOf(parentOf(node));
                 } else {
-                    if (node == leftOf(parent)) {
+                    if (colorOf(leftOf(parent)) == RED) {
                         node = parentOf(node);
                         rightRotate(node);
                     }
@@ -257,102 +308,15 @@ public class RBTree<K extends Comparable<K>, V> {
         root.color = BLACK;
     }
 
-    private void setColor(RBNode<K, V> node, boolean color) {
-        if (node != null) {
-            node.setColor(color);
-        }
-    }
-
-    private RBNode<K, V> parentOf(RBNode<K, V> node) {
-        return node == null ? null : node.parent;
-    }
-
-    private RBNode<K, V> leftOf(RBNode<K, V> node) {
-        return node == null ? null : node.left;
-    }
-
-    private RBNode<K, V> rightOf(RBNode<K, V> node) {
-        return node == null ? null : node.right;
-    }
-
-    private boolean colorOf(RBNode<K, V> node) {
-        return node == null ? BLACK : node.color;
-    }
-
-    static class RBNode<K extends Comparable<K>, V> {
-        private RBNode<K, V> parent;
-        private RBNode<K, V> left;
-        private RBNode<K, V> right;
-        private boolean color;
-        private K key;
-        private V value;
-
-        public RBNode() {
-        }
-
-        public RBNode(K key, V value, RBNode<K, V> parent) {
-            this.parent = parent;
-            this.key = key;
-            this.value = value;
-        }
-
-        public RBNode<K, V> getParent() {
-            return parent;
-        }
-
-        public void setParent(RBNode<K, V> parent) {
-            this.parent = parent;
-        }
-
-        public RBNode<K, V> getLeft() {
-            return left;
-        }
-
-        public void setLeft(RBNode<K, V> left) {
-            this.left = left;
-        }
-
-        public RBNode<K, V> getRight() {
-            return right;
-        }
-
-        public void setRight(RBNode<K, V> right) {
-            this.right = right;
-        }
-
-        public boolean getColor() {
-            return color;
-        }
-
-        public void setColor(boolean color) {
-            this.color = color;
-        }
-
-        public K getKey() {
-            return key;
-        }
-
-        public void setKey(K key) {
-            this.key = key;
-        }
-
-        public V getValue() {
-            return value;
-        }
-
-        public void setValue(V value) {
-            this.value = value;
-        }
-    }
-
     public static void main(String[] args) {
+        int[] arr = {11, 14, 6, 1, 3, 9};
         RBTree<Integer, String> tree = new RBTree<>();
-        tree.insert(1, "1");
-        tree.insert(2, "2");
-        tree.insert(3, "3");
-        tree.insert(4, "4");
-        tree.insert(5, "5");
-        tree.insert(6, "6");
-        tree.insert(7, "7");
+
+        for (int i : arr) {
+            tree.insert(i, String.valueOf(i));
+        }
+        tree.remove(22);
+
     }
+
 }
