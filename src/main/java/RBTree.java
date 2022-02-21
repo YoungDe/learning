@@ -228,11 +228,13 @@ public class RBTree<K extends Comparable<K>, V> {
                 } else {
                     if (colorOf(leftOf(sibling)) == RED) {
                         setColor(leftOf(sibling), BLACK);
+                        setColor(sibling, RED);
                         rightRotate(sibling);
                         sibling = rightOf(parentOf(node));
                     }
                     setColor(sibling, colorOf(parentOf(node)));
                     setColor(parentOf(node), BLACK);
+                    setColor(rightOf(sibling), BLACK);
                     leftRotate(parentOf(node));
                     break;
                 }
@@ -251,11 +253,13 @@ public class RBTree<K extends Comparable<K>, V> {
                 } else {
                     if (colorOf(rightOf(sibling)) == RED) {
                         setColor(rightOf(sibling), BLACK);
+                        setColor(sibling, RED);
                         leftRotate(sibling);
                         sibling = leftOf(parentOf(node));
                     }
                     setColor(sibling, colorOf(parentOf(node)));
                     setColor(parentOf(node), BLACK);
+                    setColor(leftOf(sibling), BLACK);
                     rightRotate(parentOf(node));
                     break;
                 }
@@ -309,7 +313,7 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     public static void main(String[] args) {
-        int[] arr = {11, 14, 6, 1, 3, 9};
+        int[] arr = { 11, 14, 6, 1, 3, 9 };
         RBTree<Integer, String> tree = new RBTree<>();
 
         for (int i : arr) {
