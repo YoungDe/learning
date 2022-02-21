@@ -13,7 +13,7 @@ public class TicTacToe {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         while (!hasWinner && !boardFull) {
-            playermove(sc);
+            playerMove(sc);
         }
         if (boardFull) {
             System.out.println("游戏结束,平局");
@@ -22,10 +22,10 @@ public class TicTacToe {
         }
     }
 
-    private static void playermove(Scanner sc) {
+    private static void playerMove(Scanner sc) {
 
         String[] split;
-        System.out.println("现在请" + (isCrossMove ? "X" : "O") + "移动");
+        System.out.println("现在请" + (isCrossMove ? "X" : "O") + "放棋");
         System.out.println("在以下位置放棋");
 
         String index = sc.nextLine();
