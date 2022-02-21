@@ -19,60 +19,20 @@ public class AVLTree<K extends Comparable<K>, V> {
             this.key = key;
             this.value = value;
         }
-
-        public Node<K, V> getParent() {
-            return parent;
-        }
-
-        public void setParent(Node<K, V> parent) {
-            this.parent = parent;
-        }
-
-        public K getKey() {
-            return key;
-        }
-
-        public void setKey(K key) {
-            this.key = key;
-        }
-
-        public V getValue() {
-            return value;
-        }
-
-        public void setValue(V value) {
-            this.value = value;
-        }
-
-        public Node<K, V> getLeftNode() {
-            return leftNode;
-        }
-
-        public void setLeftNode(Node<K, V> leftNode) {
-            this.leftNode = leftNode;
-        }
-
-        public Node<K, V> getRightNode() {
-            return rightNode;
-        }
-
-        public void setRightNode(Node<K, V> rightNode) {
-            this.rightNode = rightNode;
-        }
     }
 
     private Node<K, V> root;
 
     public Node<K, V> parentOf(Node<K, V> node) {
-        return node == null ? null : node.getParent();
+        return node == null ? null : node.parent;
     }
 
     public Node<K, V> leftOf(Node<K, V> node) {
-        return node == null ? null : node.getLeftNode();
+        return node == null ? null : node.leftNode;
     }
 
     public Node<K, V> rightOf(Node<K, V> node) {
-        return node == null ? null : node.getRightNode();
+        return node == null ? null : node.rightNode;
     }
 
     public void add(Node<K, V> node) {
@@ -91,15 +51,15 @@ public class AVLTree<K extends Comparable<K>, V> {
             } else if (cmp > 0) {
                 t = t.rightNode;
             } else {
-                t.setValue(node.value);
+                t.value = node.value;
             }
         } while (t != null);
 
-        node.setParent(parent);
+        node.parent = parent;
         if (cmp < 0) {
-            parent.setLeftNode(node);
+            parent.leftNode = node;
         } else {
-            parent.setRightNode(node);
+            parent.rightNode = node;
         }
 
         while (node != null) {
@@ -133,7 +93,8 @@ public class AVLTree<K extends Comparable<K>, V> {
     }
 
     private int height(Node<K, V> node) {
-        return Math.max(node.leftNode == null ? 0 : height(node.leftNode), node.rightNode == null ? 0 : height(node.rightNode)) + 1;
+        return Math.max(node.leftNode == null ? 0 : height(node.leftNode),
+                node.rightNode == null ? 0 : height(node.rightNode)) + 1;
     }
 
     public int rightHeight(Node<K, V> node) {
@@ -147,21 +108,21 @@ public class AVLTree<K extends Comparable<K>, V> {
     public void leftRotate(Node<K, V> node) {
         if (node != null) {
 
-            Node<K, V> rightNode = node.getRightNode();
-            node.setRightNode(rightNode.getLeftNode());
+            Node<K, V> rightNode = node.rightNode;
+            node.rightNode = rightNode.leftNode;
 
             if (rightNode.leftNode != null) {
                 rightNode.leftNode.parent = node;
             }
             rightNode.parent = node.parent;
-            if (node.getParent() == null) {
+            if (node.parent == null) {
                 root = rightNode;
             } else if (leftOf(parentOf(node)) == node) {
-                node.getParent().setLeftNode(rightNode);
+                node.parent.leftNode = rightNode;
             } else {
-                node.getParent().setRightNode(rightNode);
+                node.parent.rightNode = rightNode;
             }
-            rightNode.setLeftNode(node);
+            rightNode.leftNode = node;
             node.parent = rightNode;
         }
     }
@@ -169,30 +130,29 @@ public class AVLTree<K extends Comparable<K>, V> {
     public void rightRotate(Node<K, V> node) {
         if (node != null) {
 
-            Node<K, V> leftNode = node.getLeftNode();
-            node.setLeftNode(leftNode.getRightNode());
+            Node<K, V> leftNode = node.leftNode;
+            node.leftNode = leftNode.rightNode;
 
-            if (leftNode.getRightNode() != null) {
+            if (leftNode.rightNode != null) {
                 leftNode.rightNode.parent = node;
             }
-            leftNode.parent = node.getParent();
-            if (node.getParent() == null) {
+            leftNode.parent = node.parent;
+            if (node.parent == null) {
                 root = leftNode;
             } else if (leftOf(parentOf(node)) == node) {
-                node.getParent().setLeftNode(leftNode);
+                node.parent.leftNode = leftNode;
             } else {
-                node.getParent().setRightNode(leftNode);
+                node.parent.rightNode = leftNode;
             }
 
-            leftNode.setRightNode(node);
+            leftNode.rightNode = node;
             node.parent = leftNode;
 
         }
     }
 
-
     public static void main(String[] args) {
-        int[] arr = {10, 5, 6, 2, 4, 8, 9, 15};
+        int[] arr = { 10, 5, 6, 2, 4, 8, 9, 15 };
         AVLTree<Integer, String> tree = new AVLTree<>();
         for (int i : arr) {
             tree.add(new Node<>(i, String.valueOf(i)));
