@@ -111,23 +111,23 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     public Node<K, V> successor(Node<K, V> node) {
-        if (node != null) {
-            if (node.right != null) {
-                Node<K, V> p = node.right;
-                while (p != null) {
-                    p = p.left;
-                }
-                return p;
-            } else {
-                Node<K, V> p = node.parent;
-                Node<K, V> ch = node;
-                while (p != null && ch == p.right) {
-                    ch = p;
-                    p = p.parent;
-                }
+
+        Node<K, V> p;
+        if (node.right != null) {
+            p = node.right;
+            while (p.left != null) {
+                p = p.left;
+            }
+        } else {
+            p = node.parent;
+            Node<K, V> ch = node;
+            while (p != null && ch == p.right) {
+                ch = p;
+                p = p.parent;
             }
         }
-        return null;
+        return p;
+
     }
 
     public void insert(K key, V value) {
@@ -313,7 +313,7 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     public static void main(String[] args) {
-        int[] arr = { 11, 14, 6, 1, 3, 9 };
+        int[] arr = {11, 14, 6, 1, 3, 9};
         RBTree<Integer, String> tree = new RBTree<>();
 
         for (int i : arr) {
