@@ -114,7 +114,7 @@ public class RBTree<K extends Comparable<K>, V> {
         if (node != null) {
             if (node.right != null) {
                 Node<K, V> p = node.right;
-                while (p != null) {
+                while (p.left != null) {
                     p = p.left;
                 }
                 return p;
@@ -125,6 +125,7 @@ public class RBTree<K extends Comparable<K>, V> {
                     ch = p;
                     p = p.parent;
                 }
+                return p;
             }
         }
         return null;
