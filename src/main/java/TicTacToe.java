@@ -1,4 +1,7 @@
+import com.rabbitmq.client.ConnectionFactory;
+
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class TicTacToe {
 
@@ -11,6 +14,7 @@ public class TicTacToe {
     private static boolean boardFull = false;
 
     public static void main(String[] args) {
+        ConnectionFactory connectionFactory = new ConnectionFactory();
         Scanner sc = new Scanner(System.in);
         while (!hasWinner && !boardFull) {
             playerMove(sc);
