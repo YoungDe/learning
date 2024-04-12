@@ -313,7 +313,7 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     public static void main(String[] args) {
-        int[] arr = {11, 14, 6, 1, 3, 9};
+        int[] arr = { 11, 14, 6, 1, 3, 9 };
         RBTree<Integer, String> tree = new RBTree<>();
 
         for (int i : arr) {
